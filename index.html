@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LiderBCI</title>
+<!--STANDALONE:START-->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="LiderBCI">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#eef2f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1320" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<!--STANDALONE:END-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Concepto: el total acumulado va arriba, dentro de una tarjeta azul que imita la tarjeta física
+   (chip dorado, cuatro colores); debajo el botón para registrar y el listado numerado de compras.
+   Azul de la tarjeta como acento, amarillo solo en el chip, grises fríos para el resto. */
+:root {
+  --bg: #eef2f8;
+  --surface: #ffffff;
+  --ink: #101b33;
+  --muted: #56627a;
+  --line: #d6ddea;
+  --track: #e3e9f3;
+  --accent: #0b4fdc;
+  --accent-bg: #e3ecff;
+  --on-accent: #ffffff;
+  --over: #b42318;
+  --over-bg: #fdecea;
+  --card-a: #2172ff;
+  --card-b: #062f9e;
+  --card-shade: rgba(3, 26, 110, 0.42);
+  --on-card: #ffffff;
+  --on-card-muted: rgba(255, 255, 255, 0.8);
+  --gold: #ffc21f;
+  --gold-line: #a86a00;
+  --dot-1: #6aa5ff;
+  --dot-2: #22b35a;
+  --dot-3: #f0473d;
+  --dot-4: #ffc21f;
+  --scrim: rgba(8, 14, 28, 0.5);
+  --font-display: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1320;
+    --surface: #161f31;
+    --ink: #e8edf7;
+    --muted: #9aa6bd;
+    --line: #283349;
+    --track: #222d42;
+    --accent: #7dacff;
+    --accent-bg: #1b2c52;
+    --on-accent: #06163d;
+    --over: #ff9b92;
+    --over-bg: #3b1f1d;
+    --card-a: #1c5fe6;
+    --card-b: #06257d;
+    --card-shade: rgba(2, 14, 66, 0.5);
+    --on-card: #ffffff;
+    --on-card-muted: rgba(255, 255, 255, 0.8);
+    --gold: #ffc21f;
+    --gold-line: #a86a00;
+    --dot-1: #6aa5ff;
+    --dot-2: #22b35a;
+    --dot-3: #f0473d;
+    --dot-4: #ffc21f;
+    --scrim: rgba(0, 0, 0, 0.62);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1320;
+  --surface: #161f31;
+  --ink: #e8edf7;
+  --muted: #9aa6bd;
+  --line: #283349;
+  --track: #222d42;
+  --accent: #7dacff;
+  --accent-bg: #1b2c52;
+  --on-accent: #06163d;
+  --over: #ff9b92;
+  --over-bg: #3b1f1d;
+  --card-a: #1c5fe6;
+  --card-b: #06257d;
+  --card-shade: rgba(2, 14, 66, 0.5);
+  --on-card: #ffffff;
+  --on-card-muted: rgba(255, 255, 255, 0.8);
+  --gold: #ffc21f;
+  --gold-line: #a86a00;
+  --dot-1: #6aa5ff;
+  --dot-2: #22b35a;
+  --dot-3: #f0473d;
+  --dot-4: #ffc21f;
+  --scrim: rgba(0, 0, 0, 0.62);
+  color-scheme: dark;
+}
+html.lock { overflow: hidden; }
+[hidden]:not([hidden=until-found i]) { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.4;
+  padding-inline: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+.app { max-width: 480px; margin: 0 auto; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 18px; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+h1, h2 { margin: 0; font-family: var(--font-display); letter-spacing: -0.01em; text-wrap: balance; }
+.eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.muted { color: var(--muted); margin: 0; }
+svg { display: block; }
+
+/* Encabezado */
+.top { display: flex; align-items: center; gap: 12px; }
+.mark { width: 44px; height: 44px; border-radius: 14px; background: var(--accent-bg); color: var(--accent); display: grid; place-items: center; flex: none; }
+.top h1 { font-size: 28px; font-weight: 700; line-height: 1.1; }
+
+/* Botones */
+.btn {
+  min-height: 52px; padding: 0 20px; border-radius: 14px; border: 1.5px solid transparent;
+  font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn:active { opacity: 0.85; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+.btn.danger { background: transparent; border-color: var(--over); color: var(--over); }
+.btn.danger.armed, .btn.danger.solid { background: var(--over); color: var(--bg); }
+.btn.small { min-height: 44px; padding: 0 14px; font-size: 15px; }
+.btn.block { width: 100%; }
+.btn.big { min-height: 58px; font-size: 17px; border-radius: 16px; }
+
+/* Total acumulado: la tarjeta */
+.hero {
+  position: relative; overflow: hidden; border-radius: 24px; padding: 20px 20px 18px;
+  background: linear-gradient(135deg, var(--card-a), var(--card-b)); color: var(--on-card);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.hero::before, .hero::after { content: ""; position: absolute; border-radius: 50%; background: var(--card-shade); pointer-events: none; }
+.hero::before { width: 300px; height: 300px; right: -90px; bottom: -170px; }
+.hero::after { width: 190px; height: 190px; right: -40px; bottom: -120px; }
+.hero > * { position: relative; z-index: 1; }
+.hero-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.hero .eyebrow { color: var(--on-card-muted); }
+.chipmark { width: 46px; height: 36px; flex: none; }
+.chipmark rect { fill: var(--gold); }
+.chipmark path { stroke: var(--gold-line); stroke-width: 2; fill: none; }
+.total {
+  font-family: var(--font-display); font-weight: 700; line-height: 1; letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere; margin: 6px 0 2px;
+}
+.total.xl { font-size: min(60px, 15.5vw); }
+.total.lg { font-size: min(50px, 13vw); }
+.total.md { font-size: min(42px, 11vw); }
+.total.sm { font-size: min(34px, 9vw); }
+.hero-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.hero-foot p { margin: 0; font-size: 15px; font-weight: 500; color: var(--on-card-muted); min-width: 0; }
+.dots { display: flex; flex: none; }
+.dots i { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--on-card); margin-left: -7px; }
+.dots i:first-child { margin-left: 0; background: var(--dot-1); }
+.dots i:nth-child(2) { background: var(--dot-2); }
+.dots i:nth-child(3) { background: var(--dot-3); }
+.dots i:nth-child(4) { background: var(--dot-4); }
+
+/* Listado */
+.sec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.sec-head h2 { font-size: 22px; }
+.sec-head .btn { flex: none; white-space: nowrap; }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.row {
+  width: 100%; text-align: left; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px 14px 10px 10px; min-height: 60px;
+}
+.row:active { background: var(--track); }
+.num {
+  min-width: 36px; height: 36px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: var(--accent-bg); color: var(--accent);
+  display: grid; place-items: center; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums;
+}
+.info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.store { font-weight: 600; overflow-wrap: anywhere; }
+.meta { font-size: 14px; color: var(--muted); }
+.amt { font-family: var(--font-display); font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.empty { margin: 0; padding: 16px; border: 1.5px dashed var(--line); border-radius: 16px; color: var(--muted); }
+
+/* Nuevo periodo */
+.period { border-top: 1px solid var(--line); padding-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+.period h2 { font-size: 20px; }
+.foot { margin: 0; font-size: 13px; color: var(--muted); text-align: center; }
+
+/* Respaldo */
+.backup { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 4px 16px; }
+.backup summary { min-height: 48px; display: flex; align-items: center; font-weight: 600; cursor: pointer; }
+.backup[open] { padding-bottom: 16px; }
+.backup > *:not(summary) { margin-top: 10px; }
+.backup textarea { width: 100%; box-sizing: border-box; border: 1.5px solid var(--line); border-radius: 12px; background: var(--bg); padding: 10px 12px; font-size: 14px; font-family: ui-monospace, Menlo, monospace; resize: vertical; }
+.bk-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.bk-actions .btn { flex: 1; min-width: 0; min-height: 48px; }
+
+/* Hoja de registro */
+.sheet { position: fixed; inset: 0; z-index: 10; display: flex; align-items: flex-end; justify-content: center; }
+.backdrop { position: absolute; inset: 0; background: var(--scrim); }
+.panel {
+  position: relative; width: 100%; max-width: 480px; max-height: 94%; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--surface); border-radius: 24px 24px 0 0; box-sizing: border-box;
+  padding: 22px 16px calc(22px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; gap: 16px; animation: rise 0.2s ease-out;
+}
+.panel:focus { outline: none; }
+.panel h2 { font-size: 24px; }
+.panel .sub { margin: -8px 0 0; color: var(--muted); font-size: 15px; }
+.panel .sub strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.field { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.field > span { font-size: 14px; font-weight: 600; padding: 0; }
+.field input[type="date"], .field input[type="text"] {
+  display: block; width: 100%; min-width: 0; min-height: 52px; box-sizing: border-box;
+  -webkit-appearance: none; appearance: none; font-size: 16px;
+  border: 1.5px solid var(--line); border-radius: 12px; padding: 0 14px; background: var(--bg); color: var(--ink);
+}
+.price-wrap { position: relative; }
+.price-wrap b { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 600; pointer-events: none; }
+.price-wrap input { padding-left: 30px !important; font-variant-numeric: tabular-nums; }
+.err { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--over-bg); color: var(--over); font-weight: 600; font-size: 15px; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+@keyframes rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .panel { animation: none; } }
+
+.toast {
+  position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-width: 448px; margin: 0 auto; z-index: 20;
+  background: var(--ink); color: var(--bg); padding: 6px 16px; min-height: 48px; box-sizing: border-box; border-radius: 14px; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; gap: 14px; text-align: center;
+}
+.toast.top { bottom: auto; top: calc(12px + env(safe-area-inset-top, 0px)); }
+.toast button { background: none; border: 0; padding: 0 4px; min-height: 44px; color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; flex: none; }
+</style>
+</head>
+<body>
+
+<main class="app" id="app"></main>
+<div class="sheet" id="sheet" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  var LS_KEY = 'liderbci-compras';
+  var LS_ORDER = 'liderbci-orden';
+  var LS_STORES = 'liderbci-comercios';
+  var COL = 'compras';
+  var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  var MAX_AMOUNT = 999999999;
+
+  var I_PLUS = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+  var I_SORT = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5v14M8 19l-3.5-3.5M8 19l3.5-3.5M16 19V5M16 5l-3.5 3.5M16 5l3.5 3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var I_CARD = '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="3.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M2.5 10h19" stroke="currentColor" stroke-width="2.6"/><path d="M6.5 15h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  var I_CHIP = '<svg class="chipmark" viewBox="0 0 46 36" aria-hidden="true"><rect width="46" height="36" rx="8"/><path d="M0 18h15M31 18h15M15 0v36M31 0v36"/></svg>';
+
+  var app = document.getElementById('app');
+  var sheetEl = document.getElementById('sheet');
+  var toastEl = document.getElementById('toast');
+
+  var items = [];            // compras del periodo, de la más antigua a la más reciente
+  var stores = [];           // comercios ya usados, para sugerirlos al escribir
+  var order = 'desc';        // cómo se muestra el listado: 'desc' recientes primero, 'asc' antiguas primero
+  var loading = !!(window.claude && window.claude.use);
+  var mode = 'local';
+  var db = null;
+  var sheet = null;
+  var busy = false;
+  var restoreArmed = false;
+
+  /* ---------- Fechas y formatos ---------- */
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function todayKey() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function validDate(k) {
+    if (!DATE_RE.test(String(k))) return false;
+    var p = k.split('-'), d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+    return d.getUTCFullYear() === +p[0] && d.getUTCMonth() === +p[1] - 1 && d.getUTCDate() === +p[2];
+  }
+  function fmt(k, noYear) { var p = k.split('-'); return (+p[2]) + ' ' + MES[+p[1] - 1] + (noYear ? '' : ' ' + p[0]); }
+  function range(a, b) { return a.slice(0, 4) === b.slice(0, 4) ? fmt(a, true) + ' – ' + fmt(b) : fmt(a) + ' – ' + fmt(b); }
+  function dots(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function money(n) { return '$' + dots(n); }
+  function plural(n, s, p) { return n === 1 ? s : p; }
+  function genId() { return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function clean(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, 60); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+  }
+
+  /* ---------- Datos ---------- */
+  function norm(p) {
+    if (!p) return null;
+    var date = validDate(String(p.date)) ? String(p.date) : null;
+    var store = clean(p.store);
+    var amount = Math.round(+p.amount);
+    if (!date || !store || !(amount > 0) || amount > MAX_AMOUNT) return null;
+    var id = String(p.id || '').replace(/[^\w-]/g, '') || genId();
+    var ts = +p.ts > 0 ? +p.ts : 0;
+    return { id: id, date: date, store: store, amount: amount, ts: ts };
+  }
+  function toDoc(p) { return { date: p.date, store: p.store, amount: p.amount, ts: p.ts }; }
+  function sortItems() {
+    items.sort(function (a, b) {
+      if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+      if (a.ts !== b.ts) return a.ts - b.ts;
+      return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+    });
+  }
+  function find(id) { for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i]; return null; }
+  function numOf(id) { for (var i = 0; i < items.length; i++) if (items[i].id === id) return i + 1; return 0; }
+  function total() { var s = 0; for (var i = 0; i < items.length; i++) s += items[i].amount; return s; }
+
+  function loadLocal() {
+    var list = [];
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      if (raw) JSON.parse(raw).forEach(function (p) { var n = norm(p); if (n) list.push(n); });
+    } catch (e) {}
+    items = list; sortItems();
+  }
+  function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(items)); } catch (e) {} }
+
+  function loadPrefs() {
+    try { if (localStorage.getItem(LS_ORDER) === 'asc') order = 'asc'; } catch (e) {}
+    try {
+      var raw = localStorage.getItem(LS_STORES);
+      if (raw) stores = JSON.parse(raw).map(clean).filter(Boolean).slice(0, 80);
+    } catch (e) { stores = []; }
+  }
+  function rememberStore(name) {
+    var key = name.toLowerCase();
+    stores = [name].concat(stores.filter(function (s) { return s.toLowerCase() !== key; })).slice(0, 80);
+    try { localStorage.setItem(LS_STORES, JSON.stringify(stores)); } catch (e) {}
+  }
+  // Comercios para sugerir: los recordados y los del periodo actual, sin repetir
+  function storeOptions() {
+    var seen = {}, out = [];
+    stores.concat(items.map(function (p) { return p.store; }).reverse()).forEach(function (s) {
+      var k = s.toLowerCase();
+      if (!seen[k]) { seen[k] = 1; out.push(s); }
+    });
+    return out;
+  }
+
+  async function commit(ups, rems) {
+    rems = rems || [];
+    var next = items.filter(function (p) { return rems.indexOf(p.id) < 0 && !ups.some(function (u) { return u.id === p.id; }); }).concat(ups);
+    if (mode === 'db' && db) {
+      try {
+        for (var i = 0; i < ups.length; i++) await db.collection(COL).doc(ups[i].id).set(toDoc(ups[i]));
+        for (var j = 0; j < rems.length; j++) await db.collection(COL).doc(rems[j]).delete();
+      } catch (e) { toast('No se pudo guardar. Intenta de nuevo.'); return false; }
+    }
+    items = next; sortItems();
+    if (mode !== 'db') saveLocal();
+    render();
+    return true;
+  }
+
+  function toast(msg, actLabel, actFn, ms) {
+    toastEl.textContent = '';
+    var s = document.createElement('span');
+    s.textContent = msg;
+    toastEl.appendChild(s);
+    if (actLabel) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = actLabel;
+      b.addEventListener('click', function () { toastEl.hidden = true; clearTimeout(toast.t); actFn(); });
+      toastEl.appendChild(b);
+    }
+    toastEl.classList.toggle('top', !!sheet);
+    toastEl.hidden = false;
+    clearTimeout(toast.t);
+    toast.t = setTimeout(function () { toastEl.hidden = true; }, ms || 3200);
+  }
+
+  function copyText(text, okMsg) {
+    function legacy() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.left = '0'; ta.style.top = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      toast(ok ? okMsg : 'No se pudo copiar en este dispositivo');
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast(okMsg); }, legacy);
+      else legacy();
+    } catch (e) { legacy(); }
+  }
+
+  function listText() {
+    var n = items.length;
+    var lines = ['LiderBCI · ' + n + ' ' + plural(n, 'compra', 'compras') + ' · Total ' + money(total())];
+    items.forEach(function (p, i) { lines.push((i + 1) + '. ' + fmt(p.date) + ' · ' + p.store + ' · ' + money(p.amount)); });
+    return lines.join('\n');
+  }
+
+  /* ---------- Vistas ---------- */
+  function header() {
+    return '<header class="top"><span class="mark">' + I_CARD + '</span><div><div class="eyebrow">Tarjeta de crédito · registro personal</div><h1>LiderBCI</h1></div></header>';
+  }
+
+  function hero() {
+    var n = items.length, txt = money(total());
+    var size = txt.length <= 8 ? 'xl' : txt.length <= 10 ? 'lg' : txt.length <= 11 ? 'md' : 'sm';
+    var foot;
+    if (loading) foot = 'Buscando tus registros…';
+    else if (!n) foot = 'Sin compras en este periodo';
+    else {
+      var a = items[0].date, b = items[n - 1].date;
+      foot = n + ' ' + plural(n, 'compra', 'compras') + ' · ' + (a === b ? fmt(a) : range(a, b));
+    }
+    return '<section class="hero" aria-label="Total acumulado">' +
+      '<div class="hero-top"><span class="eyebrow">Total acumulado</span>' + I_CHIP + '</div>' +
+      '<div class="total ' + size + '">' + txt + '</div>' +
+      '<div class="hero-foot"><p>' + foot + '</p><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>' +
+      '</section>';
+  }
+
+  function listBlock() {
+    var n = items.length;
+    var h = '<section aria-label="Compras"><div class="sec-head"><h2>Compras</h2>';
+    if (n > 1) h += '<button class="btn ghost small" data-act="order" aria-label="Cambiar el orden del listado">' + I_SORT + (order === 'desc' ? 'Recientes primero' : 'Antiguas primero') + '</button>';
+    h += '</div>';
+    if (!n) {
+      h += '<p class="empty">Aún no hay compras. Toca «Registrar compra» para anotar la primera, con su fecha, comercio y monto.</p>';
+    } else {
+      var rows = items.map(function (p, i) { return { p: p, n: i + 1 }; });
+      if (order === 'desc') rows.reverse();
+      h += '<ol class="list"' + (order === 'desc' ? ' reversed' : '') + '>';
+      rows.forEach(function (r) {
+        var p = r.p;
+        h += '<li><button class="row" data-act="edit" data-id="' + p.id + '" aria-label="Editar compra ' + r.n + ': ' + esc(p.store) + ', ' + money(p.amount) + ', ' + fmt(p.date) + '">' +
+          '<span class="num">' + r.n + '</span>' +
+          '<span class="info"><span class="store">' + esc(p.store) + '</span><span class="meta">' + fmt(p.date) + '</span></span>' +
+          '<span class="amt">' + money(p.amount) + '</span></button></li>';
+      });
+      h += '</ol>';
+    }
+    return h + '</section>';
+  }
+
+  function periodBlock() {
+    var n = items.length;
+    return '<section class="period" aria-label="Nuevo periodo de facturación"><h2>Nuevo periodo</h2>' +
+      '<p class="muted">Cuando cierre la facturación de la tarjeta, limpia los registros para empezar el siguiente periodo desde cero.</p>' +
+      '<button class="btn danger block" data-act="clear"' + (n ? '' : ' disabled') + '>Limpiar registros</button></section>';
+  }
+
+  function backupBlock() {
+    if (window.claude) return '';
+    return '<details class="backup"><summary>Respaldo de datos</summary>' +
+      '<p class="muted">Las compras se guardan solo en este dispositivo. Copia un respaldo para guardarlo en Notas o llevarlo a otro equipo.</p>' +
+      '<textarea id="bk-text" rows="4" spellcheck="false" aria-label="Texto del respaldo"></textarea>' +
+      '<div class="bk-actions"><button class="btn ghost" data-act="bk-copy">Copiar respaldo</button><button class="btn ghost" data-act="bk-restore">Restaurar desde el texto</button></div></details>';
+  }
+
+  function render() {
+    var h = header() + hero();
+    if (!loading) {
+      h += '<button class="btn primary block big" data-act="add">' + I_PLUS + 'Registrar compra</button>' +
+        listBlock() + periodBlock() + backupBlock();
+    }
+    h += '<p class="foot">Registro personal de compras. No es la app oficial de la tarjeta ni está conectada al banco.</p>';
+    app.innerHTML = h;
+  }
+
+  /* ---------- Hoja de registro ---------- */
+  function renderSheet() {
+    var s = sheet, today = todayKey(), h = '<div class="backdrop" data-act="cancel"></div>';
+    if (s.mode === 'clear') {
+      var n = items.length;
+      h += '<div class="panel" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1">' +
+        '<h2 id="sheet-title">Limpiar registros</h2>' +
+        '<p class="sub">Se ' + plural(n, 'borrará la compra', 'borrarán las <strong>' + n + '</strong> compras') + ' de este periodo, por un total de <strong>' + money(total()) + '</strong>. El listado queda en cero para el siguiente periodo de facturación.</p>' +
+        '<div class="stack"><button type="button" class="btn danger solid block" data-act="clear-yes">' + (n === 1 ? 'Borrar la compra' : 'Borrar las ' + n + ' compras') + '</button>' +
+        '<button type="button" class="btn ghost block" data-act="copy-list">Copiar el listado antes de borrar</button>' +
+        '<button type="button" class="btn ghost block" data-act="cancel">Cancelar</button></div></div>';
+      sheetEl.innerHTML = h;
+      return;
+    }
+    var p = s.id ? find(s.id) : null;
+    var dateV = p ? p.date : (s.keepDate || today);
+    var opts = storeOptions().map(function (x) { return '<option value="' + esc(x) + '"></option>'; }).join('');
+    h += '<form class="panel" id="sheet-form" novalidate role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1">' +
+      '<h2 id="sheet-title">' + (p ? 'Editar compra' : 'Registrar compra') + '</h2>' +
+      (p ? '<p class="sub">Compra N.º ' + numOf(p.id) + ' de este periodo.</p>' : '') +
+      '<label class="field"><span>Fecha</span><input type="date" id="f-date" value="' + dateV + '" max="' + today + '" required></label>' +
+      '<label class="field"><span>Comercio</span><input type="text" id="f-store" list="f-stores" maxlength="60" autocomplete="off" autocapitalize="words" enterkeyhint="next" placeholder="Ej. Supermercado" value="' + (p ? esc(p.store) : '') + '"></label>' +
+      '<datalist id="f-stores">' + opts + '</datalist>' +
+      '<label class="field"><span>Monto</span><div class="price-wrap"><b>$</b><input type="text" id="f-amount" inputmode="numeric" autocomplete="off" enterkeyhint="done" placeholder="Ej. 24.990" value="' + (p ? dots(p.amount) : '') + '"></div></label>' +
+      '<p class="err" id="f-err" role="alert" hidden></p>' +
+      '<div class="stack"><button type="submit" class="btn primary block">' + (p ? 'Guardar cambios' : 'Guardar compra') + '</button>' +
+      (p ? '<button type="button" class="btn danger block" data-act="delete">Eliminar compra</button>'
+         : '<button type="button" class="btn ghost block" data-act="save-more">Guardar y agregar otra</button>') +
+      '<button type="button" class="btn ghost block" data-act="cancel">Cancelar</button></div></form>';
+    sheetEl.innerHTML = h;
+  }
+
+  // Mantiene la hoja dentro del área visible cuando aparece el teclado del teléfono
+  function fitSheet() {
+    var vv = window.visualViewport;
+    if (!vv || sheetEl.hidden) return;
+    sheetEl.style.top = vv.offsetTop + 'px';
+    sheetEl.style.bottom = 'auto';
+    sheetEl.style.height = vv.height + 'px';
+  }
+  function openSheet(m, id) {
+    if (m === 'edit' && !find(id)) return;
+    if (m === 'clear' && !items.length) return;
+    sheet = { mode: m, id: id || null, del: false, keepDate: null };
+    renderSheet();
+    sheetEl.hidden = false;
+    document.documentElement.classList.add('lock');
+    toastEl.classList.add('top');
+    fitSheet();
+    var target = m === 'add' ? document.getElementById('f-store') : document.getElementById('sheet-form');
+    if (target) target.focus();
+  }
+  function closeSheet() {
+    sheet = null; sheetEl.hidden = true; sheetEl.innerHTML = '';
+    sheetEl.style.top = ''; sheetEl.style.bottom = ''; sheetEl.style.height = '';
+    document.documentElement.classList.remove('lock');
+  }
+  function setErr(msg) {
+    var e = document.getElementById('f-err');
+    if (!e) return;
+    e.textContent = msg; e.hidden = !msg;
+  }
+  function val(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+
+  async function saveForm(more) {
+    if (!sheet || busy || sheet.mode === 'clear') return;
+    var today = todayKey();
+    var date = val('f-date'), store = clean(val('f-store')), raw = val('f-amount').replace(/[.\s$]/g, '');
+    if (!validDate(date)) { setErr('Indica la fecha de la compra.'); return; }
+    if (date > today) { setErr('La fecha de la compra no puede ser futura.'); return; }
+    if (!store) { setErr('Escribe el nombre del comercio.'); return; }
+    if (!/^\d+$/.test(raw) || +raw <= 0) { setErr('Escribe el monto en pesos, por ejemplo 24990.'); return; }
+    if (+raw > MAX_AMOUNT) { setErr('El monto es demasiado grande. Revisa los dígitos.'); return; }
+    var p = sheet.id ? find(sheet.id) : null;
+    if (sheet.mode === 'edit' && !p) { closeSheet(); return; }
+    var rec = p ? { id: p.id, date: date, store: store, amount: +raw, ts: p.ts }
+                : { id: genId(), date: date, store: store, amount: +raw, ts: Date.now() };
+    busy = true;
+    var ok = await commit([rec], []);
+    busy = false;
+    if (!ok) return;
+    rememberStore(store);
+    if (more && !p) {
+      sheet = { mode: 'add', id: null, del: false, keepDate: date };
+      renderSheet();
+      var el = document.getElementById('f-store');
+      if (el) el.focus();
+      toast('Compra registrada · ' + money(rec.amount));
+    } else {
+      closeSheet();
+      toast(p ? 'Cambios guardados' : 'Compra registrada');
+    }
+  }
+
+  sheetEl.addEventListener('click', async function (ev) {
+    var b = ev.target.closest('[data-act]');
+    if (!b || !sheet) return;
+    var a = b.getAttribute('data-act');
+    if (a === 'cancel') { if (!busy) closeSheet(); return; }
+    if (a === 'save-more') { saveForm(true); return; }
+    if (a === 'copy-list') { copyText(listText(), 'Listado copiado'); return; }
+    if (a === 'delete') {
+      var p = sheet.id ? find(sheet.id) : null;
+      if (!p) { closeSheet(); return; }
+      if (!sheet.del) { sheet.del = true; b.textContent = 'Toca de nuevo para eliminar'; b.classList.add('armed'); return; }
+      if (busy) return; busy = true;
+      var ok = await commit([], [p.id]); busy = false;
+      if (ok) { closeSheet(); toast('Compra eliminada', 'Deshacer', function () { commit([p], []); }, 6000); }
+    } else if (a === 'clear-yes') {
+      if (busy || !items.length) return;
+      var snap = items.slice();
+      busy = true; b.textContent = 'Borrando…';
+      var ok2 = await commit([], snap.map(function (x) { return x.id; }));
+      busy = false;
+      if (ok2) {
+        closeSheet();
+        toast('Registros borrados. Nuevo periodo en $0.', 'Deshacer', function () { commit(snap, []); }, 9000);
+      } else if (sheet) { renderSheet(); }
+    }
+  });
+
+  sheetEl.addEventListener('submit', function (ev) { ev.preventDefault(); saveForm(false); });
+
+  // El monto se muestra con separador de miles mientras se escribe
+  sheetEl.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (!t || t.id !== 'f-amount') return;
+    var d = t.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, 9);
+    t.value = d ? dots(+d) : '';
+  });
+  // En "Comercio", la tecla de avance pasa al monto en vez de guardar
+  sheetEl.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter' || !ev.target || ev.target.id !== 'f-store') return;
+    ev.preventDefault();
+    var el = document.getElementById('f-amount');
+    if (el) el.focus();
+  });
+
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && sheet && !busy) closeSheet(); });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitSheet);
+    window.visualViewport.addEventListener('scroll', fitSheet);
+  }
+
+  /* ---------- Acciones de la página ---------- */
+  app.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-act]');
+    if (!b) return;
+    var a = b.getAttribute('data-act');
+    if (a === 'add') openSheet('add');
+    else if (a === 'edit') openSheet('edit', b.getAttribute('data-id'));
+    else if (a === 'clear') openSheet('clear');
+    else if (a === 'order') {
+      order = order === 'desc' ? 'asc' : 'desc';
+      try { localStorage.setItem(LS_ORDER, order); } catch (e) {}
+      render();
+    }
+    else if (a === 'bk-copy') backupCopy();
+    else if (a === 'bk-restore') backupRestore(b);
+  });
+
+  function backupCopy() {
+    var ta = document.getElementById('bk-text');
+    var json = JSON.stringify(items.map(function (p) { return { id: p.id, date: p.date, store: p.store, amount: p.amount, ts: p.ts }; }));
+    ta.value = json;
+    function manual() { ta.focus(); ta.select(); toast('Selecciona el texto y cópialo'); }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(json).then(function () { toast('Respaldo copiado'); }, manual);
+      else manual();
+    } catch (e) { manual(); }
+  }
+
+  function backupRestore(btn) {
+    var ta = document.getElementById('bk-text');
+    var list = [];
+    try {
+      var data = JSON.parse(ta.value);
+      if (!Array.isArray(data)) throw new Error('formato');
+      data.forEach(function (p) { var n = norm(p); if (n) list.push(n); });
+    } catch (e) { toast('El texto no es un respaldo válido'); return; }
+    if (!list.length) { toast('El respaldo no tiene compras válidas'); return; }
+    if (items.length && !restoreArmed) {
+      restoreArmed = true; btn.textContent = 'Toca de nuevo para reemplazar';
+      toast('Esto reemplaza las compras de este dispositivo');
+      return;
+    }
+    restoreArmed = false;
+    items = list; sortItems(); saveLocal(); render();
+    toast('Respaldo restaurado');
+  }
+
+  /* ---------- Arranque ---------- */
+  function fallback() { mode = 'local'; db = null; loading = false; loadLocal(); render(); }
+
+  async function connect() {
+    try {
+      if (!window.claude || !window.claude.use) return;
+      db = await window.claude.use('db');
+      if (!db) { fallback(); return; }
+      mode = 'db';
+      db.collection(COL).onSnapshot(function (snap) {
+        var list = [];
+        snap.docs.forEach(function (doc) {
+          var n = norm(Object.assign({}, doc.data() || {}, { id: doc.id }));
+          if (n) list.push(n);
+        });
+        items = list; sortItems(); loading = false; render();
+      }, function () { fallback(); });
+    } catch (e) { fallback(); }
+  }
+
+  loadPrefs();
+  if (!loading) loadLocal();
+  render();
+  connect();
+
+  if (!window.claude && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+})();
+</script>
+
+</body>
+</html>

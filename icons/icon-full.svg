@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2172ff"/>
+      <stop offset="0.55" stop-color="#0b4fdc"/>
+      <stop offset="1" stop-color="#062f9e"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="24%" cy="16%" r="70%">
+      <stop offset="0" stop-color="#7fb2ff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#7fb2ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffdc52"/>
+      <stop offset="1" stop-color="#ffb000"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e6eeff"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b78ff"/>
+      <stop offset="1" stop-color="#0a3fc0"/>
+    </linearGradient>
+    <filter id="lift" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="26" stdDeviation="26" flood-color="#021a63" flood-opacity="0.42"/>
+    </filter>
+    <filter id="liftSoft" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#021a63" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- fondo -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <circle cx="900" cy="960" r="430" fill="#052a92" opacity="0.45"/>
+  <circle cx="900" cy="960" r="270" fill="#04227c" opacity="0.4"/>
+
+  <g transform="translate(-34 0)">
+  <!-- tarjeta posterior, amarilla -->
+  <g transform="rotate(-24 512 512) translate(34 -118)" filter="url(#liftSoft)">
+    <rect x="176" y="300" width="672" height="424" rx="58" fill="url(#gold)"/>
+    <rect x="176" y="372" width="672" height="78" fill="#b87400" opacity="0.38"/>
+  </g>
+
+  <!-- tarjeta frontal, blanca -->
+  <g transform="rotate(-8 512 560)" filter="url(#lift)">
+    <rect x="176" y="350" width="672" height="424" rx="58" fill="url(#paper)"/>
+
+    <!-- chip -->
+    <rect x="240" y="436" width="128" height="100" rx="24" fill="url(#chip)"/>
+    <path d="M240 486H284M324 486H368M284 436V536M324 436V536" stroke="#ffffff" stroke-opacity="0.5" stroke-width="7" fill="none"/>
+
+    <!-- señal sin contacto -->
+    <g fill="none" stroke="#9db6ee" stroke-width="13" stroke-linecap="round">
+      <path d="M742 452 Q762 486 742 520"/>
+      <path d="M772 434 Q804 486 772 538"/>
+    </g>
+
+    <!-- número de tarjeta -->
+    <rect x="240" y="622" width="236" height="30" rx="15" fill="#cdd9f3"/>
+    <rect x="240" y="676" width="148" height="30" rx="15" fill="#dfe7f8"/>
+
+    <!-- cuatro colores -->
+    <g stroke="#ffffff" stroke-width="10">
+      <circle cx="590" cy="664" r="44" fill="#1463f3"/>
+      <circle cx="650" cy="664" r="44" fill="#16a34a"/>
+      <circle cx="710" cy="664" r="44" fill="#e5352b"/>
+      <circle cx="770" cy="664" r="44" fill="#ffc21f"/>
+    </g>
+  </g>
+  </g>
+</svg>
