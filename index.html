@@ -144,6 +144,7 @@ svg { display: block; }
 .btn.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
 .btn.danger { background: transparent; border-color: var(--over); color: var(--over); }
 .btn.danger.armed, .btn.danger.solid { background: var(--over); color: var(--bg); }
+.btn.tonal { background: var(--accent-bg); color: var(--ink); }
 .btn.small { min-height: 44px; padding: 0 14px; font-size: 15px; }
 .btn.block { width: 100%; }
 .btn.big { min-height: 58px; font-size: 17px; border-radius: 16px; }
@@ -185,11 +186,14 @@ svg { display: block; }
 .sec-head h2 { font-size: 22px; }
 .sec-head .btn { flex: none; white-space: nowrap; }
 .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.row {
+.row, .linkrow {
   width: 100%; text-align: left; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px;
   background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px 14px 10px 10px; min-height: 60px;
 }
-.row:active { background: var(--track); }
+.row:active, .linkrow:active { background: var(--track); }
+.linkrow { padding: 10px 12px 10px 10px; }
+.linkrow > svg { color: var(--muted); }
+.mark.sm { width: 40px; height: 40px; border-radius: 12px; }
 .num {
   min-width: 36px; height: 36px; padding: 0 6px; box-sizing: border-box; border-radius: 999px; background: var(--accent-bg); color: var(--accent);
   display: grid; place-items: center; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums;
@@ -239,6 +243,22 @@ svg { display: block; }
 .price-wrap input { padding-left: 30px !important; font-variant-numeric: tabular-nums; }
 .err { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--over-bg); color: var(--over); font-weight: 600; font-size: 15px; }
 .stack { display: flex; flex-direction: column; gap: 10px; }
+
+/* Hoja del widget */
+.fine { font-size: 14px; }
+.note { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--accent-bg); color: var(--ink); font-size: 14px; overflow-wrap: anywhere; }
+.note strong { font-weight: 600; }
+.note .btn { margin-top: 8px; }
+.fold { border: 1px solid var(--line); border-radius: 16px; padding: 0 14px; }
+.fold summary { min-height: 48px; display: flex; align-items: center; font-weight: 600; cursor: pointer; }
+.fold[open] { padding-bottom: 14px; }
+.guide { margin: 0; padding: 0; list-style: none; counter-reset: paso; display: flex; flex-direction: column; gap: 12px; }
+.guide li { counter-increment: paso; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; font-size: 15px; }
+.guide li::before { content: counter(paso); width: 28px; height: 28px; border-radius: 999px; background: var(--accent-bg); color: var(--ink); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.guide li > div { min-width: 0; overflow-wrap: anywhere; }
+.guide strong { font-weight: 600; }
+.guide .btn { margin-top: 8px; }
+.mono { font-family: ui-monospace, Menlo, monospace; font-size: 14px; background: var(--track); padding: 1px 6px; border-radius: 6px; overflow-wrap: anywhere; }
 @keyframes rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .panel { animation: none; } }
 
@@ -268,10 +288,20 @@ svg { display: block; }
   var COL = 'compras';
   var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
   var MAX_AMOUNT = 999999999;
+  var LS_PREFS = 'liderbci-preferencias';
+  var API = 'https://api.github.com/repos/';
+  var BOX = 'fan-avisos';              // por omisión, el mismo repositorio privado que usan FAN y Master
+  var REPO_RE = /^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9._-]{1,100}$/;
+  var OWNER = /\.github\.io$/i.test(location.hostname) ? location.hostname.split('.')[0] : '';
+  var WIDGET_TITLE = 'LiderBCI · widget';   // hito del repositorio privado donde se publica el estado para el widget
+  // Script del widget para la app Scriptable (el mismo de widget/liderbci-widget.js); al copiarlo se completa con el repositorio y el token
+  var WIDGET_CODE = /*WIDGET:START*/"// Variables used by Scriptable.\n// These must be at the very top of the file. Do not edit.\n// icon-color: blue; icon-glyph: credit-card;\n\n// LiderBCI · widget para la pantalla de inicio del iPhone (app Scriptable)\n//\n// Muestra el total acumulado del periodo y las tres últimas compras. Lee lo que LiderBCI publica en tu\n// repositorio privado de GitHub cada vez que anotas, corriges o borras una compra. No copies este archivo a\n// mano: usa el botón «Copiar el script del widget» de LiderBCI, que completa las dos líneas siguientes con tu\n// repositorio y tu token.\nconst REPO = '__REPO__';\nconst TOKEN = '__TOKEN__';\n\nconst API = 'https://api.github.com/repos/' + REPO;\nconst MS_TITLE = 'LiderBCI · widget';\nconst MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];\n\n/* ---------- Formatos ---------- */\nfunction pad(n) { return (n < 10 ? '0' : '') + n; }\nfunction dayKey(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }\nfunction dots(n) { return String(Math.round(Math.abs(n))).replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.'); }\nfunction money(n) { return (n < 0 ? '−' : '') + '$' + dots(n); }\nfunction hm(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }\nfunction dayLabel(k) {\n  const t = new Date(), y = new Date(t.getFullYear(), t.getMonth(), t.getDate() - 1);\n  if (k === dayKey(t)) return 'hoy';\n  if (k === dayKey(y)) return 'ayer';\n  const p = k.split('-');\n  return (+p[2]) + ' ' + MES[+p[1] - 1];\n}\n\n/* ---------- Datos ---------- */\nasync function gh(path) {\n  const r = new Request(API + path);\n  r.headers = { Authorization: 'Bearer ' + TOKEN, Accept: 'application/vnd.github+json' };\n  r.timeoutInterval = 20;\n  const data = await r.loadJSON();\n  const code = r.response && r.response.statusCode;\n  if (code && code >= 400) { const e = new Error('GitHub ' + code); e.status = code; throw e; }\n  return data;\n}\nfunction cachePath() { const fm = FileManager.local(); return fm.joinPath(fm.documentsDirectory(), 'liderbci-widget.json'); }\nfunction readCache() {\n  try { const fm = FileManager.local(), p = cachePath(); return fm.fileExists(p) ? JSON.parse(fm.readString(p)) : null; } catch (e) { return null; }\n}\nfunction writeCache(res) { try { FileManager.local().writeString(cachePath(), JSON.stringify(res)); } catch (e) {} }\n\n// El total y las últimas compras, tal como LiderBCI los publicó la última vez que cambió algo\nasync function load() {\n  const list = await gh('/milestones?state=all&per_page=100');\n  const ms = (Array.isArray(list) ? list : []).filter(function (x) { return x && x.title === MS_TITLE; })[0];\n  let st = null;\n  try { st = ms && ms.description ? JSON.parse(ms.description) : null; } catch (e) { st = null; }\n  if (!st || st.app !== 'liderbci') return { msg: 'Abre LiderBCI y activa el widget en «Widget en la pantalla de inicio».' };\n  const buys = (Array.isArray(st.ult) ? st.ult : [])\n    .filter(function (b) { return b && /^\\d{4}-\\d{2}-\\d{2}$/.test(String(b.d)) && b.m > 0; }).slice(0, 3)\n    .map(function (b) { return { d: String(b.d), c: String(b.c || 'Compra'), m: +b.m }; });\n  return { total: typeof st.total === 'number' ? st.total : 0, n: +st.n > 0 ? Math.round(+st.n) : 0, buys: buys, at: Date.now() };\n}\n\n/* ---------- Dibujo ---------- */\nconst WHITE = new Color('#ffffff'), GOLD = new Color('#ffc21f');\nfunction label(stack, str, size, color, opacity, bold) {\n  const t = stack.addText(str);\n  t.font = bold ? Font.boldSystemFont(size) : Font.systemFont(size);\n  t.textColor = color || WHITE;\n  if (opacity) t.textOpacity = opacity;\n  t.lineLimit = 1;\n  return t;\n}\nfunction build(res, family) {\n  const w = new ListWidget();\n  const lock = String(family || '').indexOf('accessory') === 0;\n  const small = family === 'small';\n  if (lock) {\n    // Pantalla bloqueada: total acumulado y última compra\n    label(w, 'LiderBCI ' + (res.msg ? '' : money(res.total)), 14, null, 0, true).minimumScaleFactor = 0.6;\n    if (res.msg) label(w, res.msg, 11).lineLimit = 2;\n    else if (res.buys.length) label(w, res.buys[0].c + ' ' + money(res.buys[0].m), 11).minimumScaleFactor = 0.7;\n    return w;\n  }\n  const g = new LinearGradient();\n  g.colors = [new Color('#1c5fe6'), new Color('#06257d')];\n  g.locations = [0, 1];\n  g.startPoint = new Point(0, 0);\n  g.endPoint = new Point(1, 1);\n  w.backgroundGradient = g;\n  w.setPadding(small ? 12 : 14, small ? 12 : 16, small ? 10 : 12, small ? 12 : 16);\n\n  const head = w.addStack();\n  head.layoutHorizontally();\n  head.centerAlignContent();\n  const count = !small && !res.msg && res.n > 0 ? ' · ' + res.n + (res.n === 1 ? ' COMPRA' : ' COMPRAS') : '';\n  label(head, 'TOTAL LIDERBCI' + count, small ? 9 : 10, GOLD, 0, true);\n  head.addSpacer();\n  if (res.at) label(head, (res.old ? 'sin conexión · ' : '') + hm(new Date(res.at)), 9, WHITE, 0.6);\n  w.addSpacer(2);\n\n  if (res.msg) {\n    const t = label(w, res.msg, small ? 12 : 14, WHITE, 0.9);\n    t.lineLimit = 4;\n    w.addSpacer();\n    return w;\n  }\n  const total = label(w, money(res.total), small ? 22 : 28, WHITE, 0, true);\n  total.minimumScaleFactor = 0.5;\n  w.addSpacer(small ? 4 : 8);\n\n  if (!res.buys.length) label(w, 'Aún no hay compras', 12, WHITE, 0.7);\n  res.buys.forEach(function (b, i) {\n    if (i) w.addSpacer(small ? 2 : 4);\n    const row = w.addStack();\n    row.layoutHorizontally();\n    row.centerAlignContent();\n    if (!small) { label(row, dayLabel(b.d), 10, WHITE, 0.6); row.addSpacer(6); }\n    label(row, b.c, small ? 10 : 12, WHITE, 0.95);\n    row.addSpacer();\n    label(row, money(b.m), small ? 10 : 12, WHITE, 0, true);\n  });\n  w.addSpacer();\n  return w;\n}\n\n/* ---------- Ejecución ---------- */\nlet res;\nif (/^__/.test(TOKEN) || /^__/.test(REPO)) {\n  res = { msg: 'Copia este script desde LiderBCI, con el botón «Copiar el script del widget».' };\n} else {\n  try {\n    res = await load();\n    if (!res.msg) writeCache(res);\n  } catch (e) {\n    const c = readCache();\n    if (c && !c.msg) { res = c; res.old = true; }\n    else res = { msg: e && e.status === 401 ? 'El token venció. Copia de nuevo el script desde LiderBCI.' : 'No se pudo leer el repositorio. Revisa la conexión.' };\n  }\n}\nconst widget = build(res, config.widgetFamily);\nwidget.refreshAfterDate = new Date(Date.now() + 10 * 60 * 1000);\nif (config.runsInWidget) Script.setWidget(widget);\nelse await widget.presentMedium();\nScript.complete();\n"/*WIDGET:END*/;
 
   var I_PLUS = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
   var I_SORT = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5v14M8 19l-3.5-3.5M8 19l3.5-3.5M16 19V5M16 5l-3.5 3.5M16 5l3.5 3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   var I_CARD = '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="3.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M2.5 10h19" stroke="currentColor" stroke-width="2.6"/><path d="M6.5 15h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  var I_WIDGET = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2.2" fill="none" stroke="currentColor" stroke-width="2.1"/><rect x="13.5" y="3.5" width="7" height="7" rx="2.2" fill="none" stroke="currentColor" stroke-width="2.1"/><rect x="3.5" y="13.5" width="17" height="7" rx="2.2" fill="none" stroke="currentColor" stroke-width="2.1"/></svg>';
+  var I_CHEV = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   var I_CHIP = '<svg class="chipmark" viewBox="0 0 46 36" aria-hidden="true"><rect width="46" height="36" rx="8"/><path d="M0 18h15M31 18h15M15 0v36M31 0v36"/></svg>';
 
   var app = document.getElementById('app');
@@ -287,6 +317,12 @@ svg { display: block; }
   var sheet = null;
   var busy = false;
   var restoreArmed = false;
+  var hasHost = !!(window.claude && window.claude.use);
+  var canSync = !hasHost;    // dentro de Claude la página no puede llamar a GitHub
+  // Widget, solo de este dispositivo: repositorio privado y token; widget: si se publica el estado;
+  // wm: número del hito; wSig: huella de lo último publicado; wAt: cuándo
+  var prefs = { repo: '', token: '', widget: false, wm: 0, wSig: '', wAt: 0 };
+  var widgetTimer = 0, widgetBusy = false, widgetErr = '';
 
   /* ---------- Fechas y formatos ---------- */
   function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -305,6 +341,23 @@ svg { display: block; }
   function clean(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, 60); }
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+  }
+
+  function hash(s) {
+    var a = 2166136261, b = 5381;
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charCodeAt(i);
+      a = Math.imul(a ^ c, 16777619) >>> 0;
+      b = (Math.imul(b, 33) + c) >>> 0;
+    }
+    return a.toString(36) + b.toString(36);
+  }
+  function ago(ts) {
+    var d = new Date(ts), mins = Math.floor((Date.now() - ts) / 60000), hm = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    if (mins < 1) return 'hace un momento';
+    if (mins < 60) return 'hace ' + mins + ' min';
+    var k = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    return (k === todayKey() ? 'hoy' : 'el ' + fmt(k, true)) + ' a las ' + hm;
   }
 
   /* ---------- Datos ---------- */
@@ -374,7 +427,149 @@ svg { display: block; }
     items = next; sortItems();
     if (mode !== 'db') saveLocal();
     render();
+    queueWidget();
     return true;
+  }
+
+  /* ---------- Widget de la pantalla de inicio (app Scriptable) ---------- */
+  // Una app web no puede crear widgets. LiderBCI publica el total y las tres últimas compras en un hito de un
+  // repositorio privado de GitHub, y el script de Scriptable los lee y los dibuja. Solo se publica si se activa el widget.
+  function loadBox() {
+    try {
+      var p = JSON.parse(localStorage.getItem(LS_PREFS) || 'null');
+      if (!p) return;
+      if (REPO_RE.test(String(p.repo || '')) && typeof p.token === 'string' && p.token.trim().length >= 20) { prefs.repo = String(p.repo); prefs.token = p.token.trim(); }
+      prefs.widget = !!(prefs.repo && p.widget);
+      prefs.wm = prefs.repo && +p.wm > 0 ? Math.round(+p.wm) : 0;
+      prefs.wSig = prefs.widget && typeof p.wSig === 'string' ? p.wSig.slice(0, 40) : '';
+      prefs.wAt = prefs.widget && +p.wAt > 0 ? +p.wAt : 0;
+    } catch (e) {}
+  }
+  function saveBox() { try { localStorage.setItem(LS_PREFS, JSON.stringify(prefs)); } catch (e) {} }
+  // Si FAN o Master ya están conectadas en este mismo navegador, su repositorio privado sirve tal cual
+  function knownBox() {
+    var apps = [['fan-preferencias', 'FAN'], ['master-preferencias', 'Master']];
+    for (var i = 0; i < apps.length; i++) {
+      try {
+        var p = JSON.parse(localStorage.getItem(apps[i][0]) || 'null');
+        if (p && REPO_RE.test(String(p.repo || '')) && typeof p.token === 'string' && p.token.trim().length >= 20) return { repo: String(p.repo), token: p.token.trim(), app: apps[i][1] };
+      } catch (e) {}
+    }
+    return null;
+  }
+  function cleanRepo(v) {
+    return String(v || '').trim().replace(/^https?:\/\/github\.com\//i, '').replace(/\.git$/i, '').replace(/\/+$/, '');
+  }
+  function fetchError(status) { var e = new Error('http'); e.status = status; return e; }
+  async function ghJson(method, path, body, repo, token) {
+    var res = await fetch(API + (repo || prefs.repo) + path, {
+      method: method, cache: 'no-store', body: body ? JSON.stringify(body) : undefined, keepalive: method !== 'GET',
+      headers: { Authorization: 'Bearer ' + (token || prefs.token), Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw fetchError(res.status);
+    return res.json();
+  }
+  function errCode(e) {
+    var st = e && e.status;
+    return st === 401 ? 'token' : st === 403 ? 'perm' : st === 404 ? 'repo' : st === 410 ? 'issues' : navigator.onLine === false ? 'offline' : 'net';
+  }
+  function errMsg(code) {
+    return {
+      token: 'El token de GitHub no es válido o venció. Crea uno nuevo y vuelve a conectar el repositorio.',
+      perm: 'El token no tiene permiso en ese repositorio. Debe tener «Issues: Read and write».',
+      repo: 'No encuentro ese repositorio con ese token. Revisa el nombre y que el token tenga acceso a él.',
+      issues: 'Ese repositorio tiene los Issues desactivados. Actívalos en Settings → Features.',
+      offline: 'Sin conexión. Se enviarán cuando vuelva la conexión y abras la app.',
+      net: 'No se pudo conectar con GitHub. Intenta de nuevo en un momento.'
+    }[code] || 'No se pudo conectar con GitHub.';
+  }
+  function widgetState() {
+    var n = items.length, buys = [];
+    for (var i = n - 1; i >= 0 && buys.length < 3; i--) buys.push({ d: items[i].date, c: items[i].store, m: items[i].amount });
+    return { v: 1, app: 'liderbci', total: total(), n: n, from: n ? items[0].date : '', to: n ? items[n - 1].date : '', ult: buys };
+  }
+  function widgetPending() { return hash(JSON.stringify(widgetState())) !== prefs.wSig || !prefs.wm; }
+  async function publishWidget() {
+    if (!canSync || !prefs.repo || !prefs.widget || widgetBusy || loading) return;
+    var st = widgetState(), sig = hash(JSON.stringify(st)), had = prefs.wm, again = false;
+    if (sig === prefs.wSig && prefs.wm) return;
+    widgetBusy = true;
+    try {
+      st.t = Date.now();
+      var desc = JSON.stringify(st);
+      if (!prefs.wm) {
+        var list = await ghJson('GET', '/milestones?state=all&per_page=100');
+        var found = (Array.isArray(list) ? list : []).filter(function (x) { return x && x.title === WIDGET_TITLE; })[0];
+        prefs.wm = found ? found.number : (await ghJson('POST', '/milestones', { title: WIDGET_TITLE, state: 'closed', description: desc })).number;
+        if (found) await ghJson('PATCH', '/milestones/' + prefs.wm, { description: desc });
+      } else {
+        await ghJson('PATCH', '/milestones/' + prefs.wm, { description: desc });
+      }
+      prefs.wSig = sig; prefs.wAt = Date.now(); widgetErr = '';
+    } catch (e) {
+      if (e && e.status === 404 && had) { prefs.wm = 0; again = true; }   // el hito ya no existe: se vuelve a crear enseguida
+      else widgetErr = errCode(e);
+    }
+    saveBox();
+    widgetBusy = false;
+    widgetRefresh();
+    // Si el hito se perdió o hubo otro cambio mientras se enviaba, se publica de nuevo
+    if (prefs.widget && (again || (!widgetErr && widgetPending()))) queueWidget();
+  }
+  function queueWidget() {
+    if (!canSync || !prefs.widget || !prefs.repo) return;
+    clearTimeout(widgetTimer);
+    widgetTimer = setTimeout(function () { widgetTimer = 0; publishWidget(); }, 600);
+  }
+  async function widgetOff() {
+    var n = prefs.wm;
+    prefs.widget = false; prefs.wSig = ''; prefs.wAt = 0; widgetErr = ''; saveBox();
+    clearTimeout(widgetTimer); widgetTimer = 0;
+    if (n) { try { await ghJson('PATCH', '/milestones/' + n, { description: '' }); } catch (e) {} }   // no deja los montos guardados en el repositorio
+  }
+  function widgetLine() {
+    if (!prefs.repo) return 'El total y las tres últimas compras, sin abrir la app';
+    if (!prefs.widget) return 'Repositorio conectado. Falta copiar el script.';
+    if (widgetErr) return 'Activado · no se pudieron enviar los datos';
+    return prefs.wAt ? 'Activado · datos enviados ' + ago(prefs.wAt) : 'Activado · enviando los datos…';
+  }
+  function widgetNote() {
+    return (prefs.widget
+      ? '<strong>Widget activado.</strong> ' + (widgetErr ? 'No se pudieron enviar los datos: ' + esc(errMsg(widgetErr)) : prefs.wAt ? 'Datos enviados ' + ago(prefs.wAt) + '.' : 'Enviando los datos…') + ' '
+      : '') +
+      'Para el widget, LiderBCI guarda el total y las tres últimas compras en <strong>' + esc(prefs.repo) + '</strong>, tu repositorio privado, cada vez que anotas, corriges o borras una compra. El script lleva tu token. iOS decide cada cuánto actualiza el widget, normalmente cada varios minutos.' +
+      (prefs.widget ? '<br><button type="button" class="btn ghost small" data-act="widget-off">Desactivar el widget</button>' : '');
+  }
+  // Pone al día el estado del widget en la página y en la hoja, sin redibujarlas
+  function widgetRefresh() {
+    var a = document.getElementById('w-line'), b = document.getElementById('w-status');
+    if (a) a.textContent = widgetLine();
+    if (b) b.innerHTML = widgetNote();
+  }
+  async function connectWidget() {
+    if (!sheet || sheet.testing) return;
+    // El token se puede pegar tal como lo copia FAN en «Copiar autorización» (con «Bearer» delante)
+    var repo = cleanRepo(val('f-repo')), token = val('f-token').trim().replace(/^Bearer\s+/i, '');
+    if (!REPO_RE.test(repo)) { setErr('Escribe el repositorio como usuario/nombre, por ejemplo ' + (OWNER || 'tu-usuario') + '/' + BOX + '.'); return; }
+    if (token.length < 20 || /\s/.test(token)) { setErr('Pega el token completo, tal como lo entrega GitHub.'); return; }
+    var btn = document.getElementById('f-connect'), list;
+    setErr('');
+    sheet.testing = true;
+    if (btn) { btn.disabled = true; btn.textContent = 'Probando la conexión…'; }
+    try {
+      list = await ghJson('GET', '/milestones?state=all&per_page=100', null, repo, token);
+    } catch (e) {
+      if (sheet) sheet.testing = false;
+      if (btn) { btn.disabled = false; btn.textContent = 'Probar y conectar'; }
+      setErr(errMsg(errCode(e)));
+      return;
+    }
+    var found = (Array.isArray(list) ? list : []).filter(function (x) { return x && x.title === WIDGET_TITLE; })[0];
+    prefs.repo = repo; prefs.token = token; prefs.widget = false; prefs.wm = found ? found.number : 0; prefs.wSig = ''; prefs.wAt = 0; widgetErr = '';
+    saveBox();
+    openSheet('widget');   // ahora muestra los pasos para instalar el widget
+    render();
+    toast('Repositorio conectado. Ahora copia el script del widget.', null, null, 5000);
   }
 
   function toast(msg, actLabel, actFn, ms) {
@@ -479,19 +674,62 @@ svg { display: block; }
       '<div class="bk-actions"><button class="btn ghost" data-act="bk-copy">Copiar respaldo</button><button class="btn ghost" data-act="bk-restore">Restaurar desde el texto</button></div></details>';
   }
 
+  function widgetBlock() {
+    if (!canSync) return '';
+    return '<button class="linkrow" data-act="widget"><span class="mark sm">' + I_WIDGET + '</span>' +
+      '<span class="info"><span class="store">Widget en la pantalla de inicio</span><span class="meta" id="w-line">' + esc(widgetLine()) + '</span></span>' + I_CHEV + '</button>';
+  }
+
   function render() {
     var h = header() + hero();
     if (!loading) {
       h += '<button class="btn primary block big" data-act="add">' + I_PLUS + 'Registrar compra</button>' +
-        listBlock() + periodBlock() + backupBlock();
+        listBlock() + periodBlock() + widgetBlock() + backupBlock();
     }
     h += '<p class="foot">Registro personal de compras. No es la app oficial de la tarjeta ni está conectada al banco.</p>';
     app.innerHTML = h;
   }
 
+  /* ---------- Hoja del widget ---------- */
+  function sheetWidget() {
+    var head = '<h2 id="sheet-title">Widget en la pantalla de inicio</h2>';
+    if (prefs.repo) {
+      return '<div class="panel" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1">' + head +
+        '<p class="sub">Muestra el total acumulado y las tres últimas compras. Se hace con la app gratuita Scriptable, porque una app web no puede crear widgets por sí sola.</p>' +
+        '<ol class="guide">' +
+        '<li><div>Instala <strong>Scriptable</strong> desde el App Store.</div></li>' +
+        '<li><div>Copia el script. Ya va completo, con tu repositorio y tu token.<br><button type="button" class="btn tonal small" data-act="copy-widget">Copiar el script del widget</button></div></li>' +
+        '<li><div>Abre Scriptable, toca <strong>+</strong> y pega el script. Toca el título de arriba y nómbralo <strong>LiderBCI</strong>. Ejecútalo con <strong>▶</strong>: debe mostrar el total acumulado.</div></li>' +
+        '<li><div>En la pantalla de inicio, mantén presionado un espacio vacío, toca <strong>Editar</strong> y <strong>Agregar widget</strong>. Busca <strong>Scriptable</strong> y elige el tamaño mediano.</div></li>' +
+        '<li><div>Mantén presionado el widget nuevo, toca <strong>Editar widget</strong> y en <strong>Script</strong> elige <strong>LiderBCI</strong>.</div></li>' +
+        '</ol>' +
+        '<p class="note" id="w-status">' + widgetNote() + '</p>' +
+        '<div class="stack"><button type="button" class="btn danger block" data-act="disconnect">Desconectar el repositorio</button>' +
+        '<button type="button" class="btn ghost block" data-act="cancel">Cerrar</button></div></div>';
+    }
+    var known = knownBox(), repoV = known ? known.repo : OWNER ? OWNER + '/' + BOX : '';
+    return '<form class="panel" id="sheet-form" novalidate role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1">' + head +
+      '<p class="sub">Muestra el total acumulado y las tres últimas compras sin abrir la app. Para que el widget pueda leerlos, LiderBCI los publica en un repositorio privado de tu GitHub.</p>' +
+      (known ? '<p class="note"><strong>Encontré el buzón de ' + known.app + ' en este dispositivo</strong> y completé los datos. Toca «Probar y conectar».</p>'
+             : '<p class="note"><strong>Si ya usas FAN o Master, sirve el mismo buzón.</strong> Abre FAN, entra a «Buzón y atajo», toca «Copiar autorización» y pega ese texto aquí como token.</p>') +
+      '<label class="field"><span>Repositorio privado</span><input type="text" id="f-repo" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="next" placeholder="' + (OWNER || 'tu-usuario') + '/' + BOX + '" value="' + esc(repoV) + '"></label>' +
+      '<label class="field"><span>Token de acceso</span><input type="text" id="f-token" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" placeholder="github_pat_…" value="' + (known ? esc(known.token) : '') + '"></label>' +
+      '<details class="fold"><summary>No tengo ese repositorio</summary><ol class="guide">' +
+      '<li><div>En GitHub, crea un repositorio <strong>privado</strong>, por ejemplo <span class="mono">' + BOX + '</span>.</div></li>' +
+      '<li><div>Crea un token en <strong>Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token</strong>.</div></li>' +
+      '<li><div>En <strong>Repository access</strong> elige <strong>Only select repositories</strong> y marca ese repositorio. En <strong>Permissions</strong>, da a <strong>Issues</strong> el acceso <strong>Read and write</strong>.</div></li>' +
+      '<li><div>Toca <strong>Generate token</strong>, copia el token y pégalo aquí.</div></li>' +
+      '</ol></details>' +
+      '<p class="note">El token queda guardado solo en este dispositivo y no entra en los respaldos. Sirve únicamente para los Issues de ese repositorio.</p>' +
+      '<p class="err" id="f-err" role="alert" hidden></p>' +
+      '<div class="stack"><button type="submit" class="btn primary block" id="f-connect">Probar y conectar</button>' +
+      '<button type="button" class="btn ghost block" data-act="cancel">Cancelar</button></div></form>';
+  }
+
   /* ---------- Hoja de registro ---------- */
   function renderSheet() {
     var s = sheet, today = todayKey(), h = '<div class="backdrop" data-act="cancel"></div>';
+    if (s.mode === 'widget') { sheetEl.innerHTML = h + sheetWidget(); return; }
     if (s.mode === 'clear') {
       var n = items.length;
       h += '<div class="panel" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1">' +
@@ -532,7 +770,8 @@ svg { display: block; }
   function openSheet(m, id) {
     if (m === 'edit' && !find(id)) return;
     if (m === 'clear' && !items.length) return;
-    sheet = { mode: m, id: id || null, del: false, keepDate: null };
+    if (m === 'widget' && !canSync) return;
+    sheet = { mode: m, id: id || null, del: false, keepDate: null, testing: false };
     renderSheet();
     sheetEl.hidden = false;
     document.documentElement.classList.add('lock');
@@ -554,7 +793,7 @@ svg { display: block; }
   function val(id) { var el = document.getElementById(id); return el ? el.value : ''; }
 
   async function saveForm(more) {
-    if (!sheet || busy || sheet.mode === 'clear') return;
+    if (!sheet || busy || (sheet.mode !== 'add' && sheet.mode !== 'edit')) return;
     var today = todayKey();
     var date = val('f-date'), store = clean(val('f-store')), raw = val('f-amount').replace(/[.\s$]/g, '');
     if (!validDate(date)) { setErr('Indica la fecha de la compra.'); return; }
@@ -587,7 +826,28 @@ svg { display: block; }
     var b = ev.target.closest('[data-act]');
     if (!b || !sheet) return;
     var a = b.getAttribute('data-act');
-    if (a === 'cancel') { if (!busy) closeSheet(); return; }
+    if (a === 'cancel') { if (!busy && !sheet.testing) closeSheet(); return; }
+    if (a === 'copy-widget') {
+      copyText(WIDGET_CODE.replace('__REPO__', function () { return prefs.repo; }).replace('__TOKEN__', function () { return prefs.token; }), 'Script copiado. El widget quedó activado.');
+      if (!prefs.widget) { prefs.widget = true; saveBox(); }
+      widgetRefresh();
+      publishWidget();
+      return;
+    }
+    if (a === 'widget-off') {
+      await widgetOff();
+      closeSheet(); render();
+      toast('Widget desactivado. Puedes quitarlo de la pantalla de inicio.');
+      return;
+    }
+    if (a === 'disconnect') {
+      if (!sheet.del) { sheet.del = true; b.textContent = 'Toca de nuevo para desconectar'; b.classList.add('armed'); return; }
+      if (prefs.widget) await widgetOff();
+      prefs.repo = ''; prefs.token = ''; prefs.wm = 0; saveBox();
+      closeSheet(); render();
+      toast('Repositorio desconectado. Tus compras siguen aquí.');
+      return;
+    }
     if (a === 'save-more') { saveForm(true); return; }
     if (a === 'copy-list') { copyText(listText(), 'Listado copiado'); return; }
     if (a === 'delete') {
@@ -610,7 +870,11 @@ svg { display: block; }
     }
   });
 
-  sheetEl.addEventListener('submit', function (ev) { ev.preventDefault(); saveForm(false); });
+  sheetEl.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    if (sheet && sheet.mode === 'widget') connectWidget();
+    else saveForm(false);
+  });
 
   // El monto se muestra con separador de miles mientras se escribe
   sheetEl.addEventListener('input', function (ev) {
@@ -627,7 +891,7 @@ svg { display: block; }
     if (el) el.focus();
   });
 
-  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && sheet && !busy) closeSheet(); });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && sheet && !busy && !sheet.testing) closeSheet(); });
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', fitSheet);
     window.visualViewport.addEventListener('scroll', fitSheet);
@@ -641,6 +905,7 @@ svg { display: block; }
     if (a === 'add') openSheet('add');
     else if (a === 'edit') openSheet('edit', b.getAttribute('data-id'));
     else if (a === 'clear') openSheet('clear');
+    else if (a === 'widget') openSheet('widget');
     else if (a === 'order') {
       order = order === 'desc' ? 'asc' : 'desc';
       try { localStorage.setItem(LS_ORDER, order); } catch (e) {}
@@ -677,6 +942,7 @@ svg { display: block; }
     }
     restoreArmed = false;
     items = list; sortItems(); saveLocal(); render();
+    queueWidget();
     toast('Respaldo restaurado');
   }
 
@@ -701,9 +967,18 @@ svg { display: block; }
   }
 
   loadPrefs();
+  if (canSync) loadBox();
   if (!loading) loadLocal();
   render();
   connect();
+  queueWidget();   // si algo quedó sin enviar la última vez, se envía ahora
+
+  // Al volver a la app se reintenta lo pendiente; al salir, se envía de inmediato lo que estaba en espera
+  document.addEventListener('visibilitychange', function () {
+    if (!canSync || !prefs.widget) return;
+    if (document.visibilityState === 'visible') { if (widgetPending()) queueWidget(); else widgetRefresh(); }
+    else if (widgetTimer) { clearTimeout(widgetTimer); widgetTimer = 0; publishWidget(); }
+  });
 
   if (!window.claude && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
