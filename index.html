@@ -711,7 +711,7 @@ svg { display: block; }
     return '<form class="panel" id="sheet-form" novalidate role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1">' + head +
       '<p class="sub">Muestra el total acumulado y las tres últimas compras sin abrir la app. Para que el widget pueda leerlos, LiderBCI los publica en un repositorio privado de tu GitHub.</p>' +
       (known ? '<p class="note"><strong>Encontré el buzón de ' + known.app + ' en este dispositivo</strong> y completé los datos. Toca «Probar y conectar».</p>'
-             : '<p class="note"><strong>Si ya usas FAN o Master, sirve el mismo buzón.</strong> Abre FAN, entra a «Buzón y atajo», toca «Copiar autorización» y pega ese texto aquí como token.</p>') +
+             : '<p class="note"><strong>Si ya usas FAN o Master, sirve el mismo buzón.</strong> Abre FAN y entra a «Buzón y atajo». Toca «Automatización en Atajos» para desplegarla y, en el paso 5, toca «Copiar autorización». Pega ese texto aquí como token.</p>') +
       '<label class="field"><span>Repositorio privado</span><input type="text" id="f-repo" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="next" placeholder="' + (OWNER || 'tu-usuario') + '/' + BOX + '" value="' + esc(repoV) + '"></label>' +
       '<label class="field"><span>Token de acceso</span><input type="text" id="f-token" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" placeholder="github_pat_…" value="' + (known ? esc(known.token) : '') + '"></label>' +
       '<details class="fold"><summary>No tengo ese repositorio</summary><ol class="guide">' +

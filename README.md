@@ -22,7 +22,7 @@ Muestra el total acumulado del periodo y las tres últimas compras. Una app web 
 
 El widget no puede leer los datos de la app, que viven dentro de ella. Por eso LiderBCI publica el total y las últimas compras en un repositorio **privado** de GitHub, y el script los lee desde ahí. Sirve el mismo buzón de FAN y Master (`fan-avisos`):
 
-1. Abre FAN, entra a **Buzón y atajo** y toca **Copiar autorización**.
+1. Abre FAN y entra a **Buzón y atajo**. Toca **Automatización en Atajos** para desplegarla y, en el paso 5, toca **Copiar autorización**. En Master el mismo botón está en **Buzón y atajo → Crear la automatización desde cero**.
 2. Abre LiderBCI y toca **Widget en la pantalla de inicio**.
 3. Revisa el repositorio (`tu-usuario/fan-avisos`) y pega la autorización en **Token de acceso**. Se puede pegar tal cual, con la palabra `Bearer` delante.
 4. Toca **Probar y conectar**.
