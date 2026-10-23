@@ -4,8 +4,8 @@
 
 // LiderBCI · widget para la pantalla de inicio del iPhone (app Scriptable)
 //
-// Muestra el total acumulado del periodo y las tres últimas compras. Lee lo que LiderBCI publica en tu
-// repositorio privado de GitHub cada vez que anotas, corriges o borras una compra. No copies este archivo a
+// Muestra el total acumulado del periodo, el saldo de puntos y las tres últimas compras. Lee lo que LiderBCI
+// publica en tu repositorio privado de GitHub cada vez que anotas, corriges o borras una compra, o canjeas puntos. No copies este archivo a
 // mano: usa el botón «Copiar el script del widget» de LiderBCI, que completa las dos líneas siguientes con tu
 // repositorio y tu token.
 const REPO = '__REPO__';
@@ -20,6 +20,8 @@ function pad(n) { return (n < 10 ? '0' : '') + n; }
 function dayKey(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
 function dots(n) { return String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 function money(n) { return (n < 0 ? '−' : '') + '$' + dots(n); }
+function num(n) { return (n < 0 ? '−' : '') + dots(n); }
+function ptsLabel(n) { return num(n) + (Math.abs(n) === 1 ? ' punto' : ' puntos'); }
 function hm(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 function dayLabel(k) {
   const t = new Date(), y = new Date(t.getFullYear(), t.getMonth(), t.getDate() - 1);
@@ -55,7 +57,8 @@ async function load() {
   const buys = (Array.isArray(st.ult) ? st.ult : [])
     .filter(function (b) { return b && /^\d{4}-\d{2}-\d{2}$/.test(String(b.d)) && b.m > 0; }).slice(0, 3)
     .map(function (b) { return { d: String(b.d), c: String(b.c || 'Compra'), m: +b.m }; });
-  return { total: typeof st.total === 'number' ? st.total : 0, n: +st.n > 0 ? Math.round(+st.n) : 0, buys: buys, at: Date.now() };
+  return { total: typeof st.total === 'number' ? st.total : 0, n: +st.n > 0 ? Math.round(+st.n) : 0,
+    pts: typeof st.pts === 'number' && isFinite(st.pts) ? Math.round(st.pts) : null, buys: buys, at: Date.now() };
 }
 
 /* ---------- Dibujo ---------- */
@@ -77,6 +80,7 @@ function build(res, family) {
     label(w, 'LiderBCI ' + (res.msg ? '' : money(res.total)), 14, null, 0, true).minimumScaleFactor = 0.6;
     if (res.msg) label(w, res.msg, 11).lineLimit = 2;
     else if (res.buys.length) label(w, res.buys[0].c + ' ' + money(res.buys[0].m), 11).minimumScaleFactor = 0.7;
+    if (!res.msg && typeof res.pts === 'number') label(w, ptsLabel(res.pts), 11, null, 0.85).minimumScaleFactor = 0.7;
     return w;
   }
   const g = new LinearGradient();
@@ -102,8 +106,21 @@ function build(res, family) {
     w.addSpacer();
     return w;
   }
-  const total = label(w, money(res.total), small ? 22 : 28, WHITE, 0, true);
-  total.minimumScaleFactor = 0.5;
+  const hasPts = typeof res.pts === 'number';
+  if (small || !hasPts) {
+    const total = label(w, money(res.total), small ? 22 : 28, WHITE, 0, true);
+    total.minimumScaleFactor = 0.5;
+    if (hasPts) label(w, ptsLabel(res.pts), 11, GOLD, 0, true).minimumScaleFactor = 0.7;
+  } else {
+    // Mediano: el total a la izquierda y los puntos, más pequeños, a la derecha
+    const line = w.addStack();
+    line.layoutHorizontally();
+    line.bottomAlignContent();
+    const total = label(line, money(res.total), 28, WHITE, 0, true);
+    total.minimumScaleFactor = 0.5;
+    line.addSpacer(8);
+    label(line, ptsLabel(res.pts), 13, GOLD, 0, true).minimumScaleFactor = 0.7;
+  }
   w.addSpacer(small ? 4 : 8);
 
   if (!res.buys.length) label(w, 'Aún no hay compras', 12, WHITE, 0.7);
