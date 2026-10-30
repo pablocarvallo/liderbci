@@ -1,5 +1,5 @@
 // Service worker mínimo: deja la app disponible sin conexión.
-const CACHE = 'liderbci-v3-ds1';
+const CACHE = 'liderbci-v3-ds1-sinzoom';
 const ASSETS = [
   './',
   'index.html',
